@@ -5,7 +5,7 @@ variables:
 test:
   stage: verify
   tags: [ "arch:amd64" ]
-  image: registry.ddbuild.io/images/mirror/golang:1.21.1
+  image: registry.ddbuild.io/images/mirror/golang:1.22.7
   script:
     - make test
 
