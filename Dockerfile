@@ -30,17 +30,23 @@ ARG GOPROXY=https://goproxy.io,direct
 ARG TARGETOS
 ARG TARGETARCH
 ARG VERSION
+ARG CGO_ENABLED=0
+ARG LDFLAGS="-w -s"
+ARG GOEXPERIMENT
 
 WORKDIR /build
 COPY go.mod go.sum ./
 COPY cmd/ cmd/
 COPY pkg/ pkg/
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOPROXY=${GOPROXY} \
+COPY hack/is_fips_compliant.sh ./is_fips_compliant.sh
+RUN GO111MODULE=on CGO_ENABLED=${CGO_ENABLED} GOEXPERIMENT=${GOEXPERIMENT} GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOPROXY=${GOPROXY} \
 		go build \
 		-trimpath \
-		-ldflags="-w -s -X k8s.io/component-base/version.gitVersion=${VERSION}" \
+		-ldflags="${LDFLAGS} -X k8s.io/component-base/version.gitVersion=$VERSION" \
 		-o=aws-cloud-controller-manager \
 		cmd/aws-cloud-controller-manager/main.go
+RUN chmod +x ./is_fips_compliant.sh
+RUN ./is_fips_compliant.sh /build/aws-cloud-controller-manager
 
 ################################################################################
 ##                               MAIN STAGE                                   ##
