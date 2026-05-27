@@ -2,6 +2,8 @@ module k8s.io/cloud-provider-aws
 
 go 1.24.4
 
+toolchain go1.26.2
+
 require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/aws/aws-sdk-go-v2 v1.36.5
