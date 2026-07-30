@@ -29,7 +29,7 @@ ARG DISTROLESS_IMAGE=registry.k8s.io/build-image/go-runner:v2.4.0-go1.24.4-bookw
 ################################################################################
 # Build the manager as a statically compiled binary so it has no dependencies
 # libc, muscl, etc.
-FROM --platform=linux/amd64 ${GOLANG_IMAGE} as builder
+FROM ${GOLANG_IMAGE} as builder
 
 ARG GOPROXY=https://goproxy.io,direct
 ARG TARGETOS
@@ -40,7 +40,7 @@ WORKDIR /build
 COPY go.mod go.sum ./
 COPY cmd/ cmd/
 COPY pkg/ pkg/
-RUN GO111MODULE=on CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOPROXY=${GOPROXY} \
+RUN GO111MODULE=on CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOPROXY=${GOPROXY} GOFIPS140=v1.0.0 \
 		go build \
 		-trimpath \
 		-ldflags="-w -s -X k8s.io/component-base/version.gitVersion=${VERSION}" \
@@ -52,5 +52,6 @@ RUN GO111MODULE=on CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} GOPROXY=$
 ################################################################################
 # Copy the manager into the distroless image.
 FROM --platform=${TARGETPLATFORM} ${DISTROLESS_IMAGE}
+LABEL is_fips="true"
 COPY --from=builder /build/aws-cloud-controller-manager /bin/aws-cloud-controller-manager
 ENTRYPOINT [ "/bin/aws-cloud-controller-manager" ]
